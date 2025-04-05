@@ -29,11 +29,10 @@ steps:
   displayName: 'Publish data_script.py artifact'
 
 - script: |
-    # Prepare files for Universal Packages
-    mkdir -p $(Build.ArtifactStagingDirectory)/artifact
-    cp module_3_output.txt $(Build.ArtifactStagingDirectory)/artifact/
-    echo "$(Build.BuildId)" > $(Build.ArtifactStagingDirectory)/artifact/version.txt
-    ls -lh $(Build.ArtifactStagingDirectory)/artifact/
+    mkdir $(Build.ArtifactStagingDirectory)\artifact
+    copy module_3_output.txt $(Build.ArtifactStagingDirectory)\artifact\
+    echo %BUILD_BUILDID% > $(Build.ArtifactStagingDirectory)\artifact\version.txt
+    dir $(Build.ArtifactStagingDirectory)\artifact\
   displayName: 'Stage Files for Publishing'
 
 - task: UniversalPackages@0
