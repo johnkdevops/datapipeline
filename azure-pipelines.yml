@@ -9,6 +9,9 @@ trigger:
 pool:
   vmImage: 'windows-latest'
 
+variables:
+  version: '1.0'
+
 steps:
 - task: UsePythonVersion@0
   inputs:
@@ -16,11 +19,11 @@ steps:
   displayName: 'Setup Python'
 
 - script: |
-   python ./scripts/data_script.py > output.txt
+   python ./scripts/data_script.py > module_3_output.txt
   displayName: 'Run data_script.py'
 
 - task: PublishBuildArtifacts@1
   inputs:
-    pathToPublish: 'scripts/data_script.py'
-    artifactName: 'pipeline-script'
+    pathToPublish: 'module_3_output.txt'
+    artifactName: 'script-output'
   displayName: 'Publish data_script.py artifact'
