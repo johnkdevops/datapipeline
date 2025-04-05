@@ -27,3 +27,22 @@ steps:
     pathToPublish: 'module_3_output.txt'
     artifactName: 'script-output'
   displayName: 'Publish data_script.py artifact'
+
+- script: |
+    # Prepare files for Universal Packages
+    mkdir -p $(Build.ArtifactStagingDirectory)/artifact
+    cp module_3_output.txt $(Build.ArtifactStagingDirectory)/artifact/
+    echo "$(Build.BuildId)" > $(Build.ArtifactStagingDirectory)/artifact/version.txt
+    ls -lh $(Build.ArtifactStagingDirectory)/artifact/
+  displayName: 'Stage Files for Publishing'
+
+- task: UniversalPackages@0
+  displayName: 'Publish to Azure Artifacts Feed'
+  inputs:
+    command: 'publish'
+    publishDirectory: '$(Build.ArtifactStagingDirectory)/artifact'  # Directory with output.txt and version.txt
+    vstsFeedPublish: '$(System.TeamProject)/data-pipeline-feed'     # Project-scoped feed: <project>/<feed>
+    vstsFeedPackagePublish: 'data-script-output'                    # Package name (lowercase)
+    versionOption: 'custom'                                         # Custom version
+    versionPublish: '1.0.$(Build.BuildId)'                          # Matches your current versioning
+    packagePublishDescription: 'Data script output artifact'        # Matches your description
