@@ -39,7 +39,7 @@ steps:
   displayName: 'Publish to Azure Artifacts Feed'
   inputs:
     command: 'publish'
-    publishDirectory: '$(Build.ArtifactStagingDirectory)/artifact'  # Directory with output.txt and version.txt
+    publishDirectory: '$(Build.ArtifactStagingDirectory)/artifact/module_3_output.txt'  # Directory with output.txt and version.txt
     vstsFeedPublish: '$(System.TeamProject)/data-pipeline-feed'     # Project-scoped feed: <project>/<feed>
     vstsFeedPackagePublish: 'data-script-output'                    # Package name (lowercase)
     versionOption: 'custom'                                         # Custom version
