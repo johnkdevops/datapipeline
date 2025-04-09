@@ -19,8 +19,22 @@ steps:
   displayName: 'Setup Python'
 
 - script: |
-   python ./scripts/data_script.py > module_3_output.txt
+   python ./scripts/data_script.py > module_4_output.txt
   displayName: 'Run data_script.py'
+
+- task: DotNetCoreInstaller@0
+   inputs:
+     packageType: 'sdk'
+     version: '3.1.x'
+   displayName: 'Install .NET Core SDK'
+
+- task: MSBuild@1
+   inputs:
+     solution: 'Database.sqlproj'
+     msbuildArguments: '/t:Build /p:Configuration=Release /p:DacpacPath="$(Build.ArtifactStagingDirectory)\Database.dacpac"'
+     platform: 'Any CPU'
+     configuration: 'Release'
+   displayName: 'Build .dacpac from SQL Project'
 
 - task: PublishBuildArtifacts@1
   inputs:
@@ -28,20 +42,26 @@ steps:
     artifactName: 'script-output'
   displayName: 'Publish data_script.py artifact'
 
-- script: |
-    mkdir $(Build.ArtifactStagingDirectory)\artifact
-    copy module_3_output.txt $(Build.ArtifactStagingDirectory)\artifact\
-    echo %BUILD_BUILDID% > $(Build.ArtifactStagingDirectory)\artifact\version.txt
-    dir $(Build.ArtifactStagingDirectory)\artifact\
-  displayName: 'Stage Files for Publishing'
+- task: PublishBuildArtifacts@1
+   inputs:
+     pathToPublish: '$(Build.ArtifactStagingDirectory)\Database.dacpac'
+     artifactName: 'sql-dacpac'
+   displayName: 'Publish .dacpac artifact'
 
-- task: UniversalPackages@0
-  displayName: 'Publish to Azure Artifacts Feed'
-  inputs:
-    command: 'publish'
-    publishDirectory: '$(Build.ArtifactStagingDirectory)/artifact'  # Directory with output.txt and version.txt
-    vstsFeedPublish: '$(System.TeamProject)/data-pipeline-feed'     # Project-scoped feed: <project>/<feed>
-    vstsFeedPackagePublish: 'data-script-output'                    # Package name (lowercase)
-    versionOption: 'custom'                                         # Custom version
-    versionPublish: '1.0.$(Build.BuildId)'                          # Matches your current versioning
-    packagePublishDescription: 'Data script output artifact'        # Matches your description
+# - script: |
+#     mkdir $(Build.ArtifactStagingDirectory)\artifact
+#     copy module_3_output.txt $(Build.ArtifactStagingDirectory)\artifact\
+#     echo %BUILD_BUILDID% > $(Build.ArtifactStagingDirectory)\artifact\version.txt
+#     dir $(Build.ArtifactStagingDirectory)\artifact\
+#   displayName: 'Stage Files for Publishing'
+
+# - task: UniversalPackages@0
+#   displayName: 'Publish to Azure Artifacts Feed'
+#   inputs:
+#     command: 'publish'
+#     publishDirectory: '$(Build.ArtifactStagingDirectory)/artifact'  # Directory with output.txt and version.txt
+#     vstsFeedPublish: '$(System.TeamProject)/data-pipeline-feed'     # Project-scoped feed: <project>/<feed>
+#     vstsFeedPackagePublish: 'data-script-output'                    # Package name (lowercase)
+#     versionOption: 'custom'                                         # Custom version
+#     versionPublish: '1.0.$(Build.BuildId)'                          # Matches your current versioning
+#     packagePublishDescription: 'Data script output artifact'        # Matches your description
