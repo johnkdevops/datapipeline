@@ -28,10 +28,18 @@ steps:
     version: '3.1.x'
   displayName: 'Install .NET Core SDK'
 
-- task: MSBuild@1
+# Install SQL Server Data Tools (SSDT)
+- task: NuGetCommand@2
+  inputs:
+    command: 'restore'
+    restoreSolution: '**/*.sln'
+    feedsToUse: 'select'
+  displayName: 'NuGet Restore'
+
+- task: VSBuild@1
   inputs:
     solution: 'Database.sqlproj'
-    msbuildArguments: '/t:Build /p:Configuration=Release /p:DacpacPath="$(Build.ArtifactStagingDirectory)\Database.dacpac"'
+    msbuildArgs: '/p:Configuration=Release /p:OutDir="$(Build.ArtifactStagingDirectory)"'
     platform: 'Any CPU'
     configuration: 'Release'
   displayName: 'Build .dacpac from SQL Project'
