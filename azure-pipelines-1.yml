@@ -1,0 +1,47 @@
+trigger:
+  branches:
+    include:
+      - feature/*
+  paths:
+    include:
+      - scripts/*
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  version: '1.0'
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.x'
+  displayName: 'Setup Python'
+
+- script: |
+   python ./scripts/data_script.py > module_3_output.txt
+  displayName: 'Run data_script.py'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: 'module_3_output.txt'
+    artifactName: 'script-output'
+  displayName: 'Publish data_script.py artifact'
+
+- script: |
+    mkdir $(Build.ArtifactStagingDirectory)\artifact
+    copy module_3_output.txt $(Build.ArtifactStagingDirectory)\artifact\
+    echo %BUILD_BUILDID% > $(Build.ArtifactStagingDirectory)\artifact\version.txt
+    dir $(Build.ArtifactStagingDirectory)\artifact\
+  displayName: 'Stage Files for Publishing'
+
+- task: UniversalPackages@0
+  displayName: 'Publish to Azure Artifacts Feed'
+  inputs:
+    command: 'publish'
+    publishDirectory: '$(Build.ArtifactStagingDirectory)/artifact'  # Directory with output.txt and version.txt
+    vstsFeedPublish: '$(System.TeamProject)/data-pipeline-feed'     # Project-scoped feed: <project>/<feed>
+    vstsFeedPackagePublish: 'data-script-output'                    # Package name (lowercase)
+    versionOption: 'custom'                                         # Custom version
+    versionPublish: '1.0.$(Build.BuildId)'                          # Matches your current versioning
+    packagePublishDescription: 'Data script output artifact'        # Matches your description
