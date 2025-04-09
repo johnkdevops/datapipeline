@@ -5,8 +5,8 @@ trigger:
   paths:
     include:
       - scripts/*
-      - *.sql  # Added to capture changes to SQL files
-      - *.sqlproj  # Added to capture changes to project file
+      - '**/*.sql'  # Fixed pattern for SQL files
+      - '**/*.sqlproj'  # Fixed pattern for SQL project files
 
 pool:
   vmImage: 'windows-latest'
