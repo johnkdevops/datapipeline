@@ -1,8 +1,7 @@
 trigger:
   branches:
     include:
-      - main
-      - feature/*
+      - feature/your-specific-feature-branch  # Replace with your actual feature branch name
   paths:
     include:
       - scripts/*
@@ -20,38 +19,38 @@ steps:
   displayName: 'Setup Python'
 
 - script: |
-   python ./scripts/data_script.py > module_4_output.txt
+    python ./scripts/data_script.py > module_4_output.txt
   displayName: 'Run data_script.py'
 
-- task: DotNetCoreInstaller@0
-   inputs:
-     packageType: 'sdk'
-     version: '3.1.x'
-   displayName: 'Install .NET Core SDK'
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '3.1.x'
+  displayName: 'Install .NET Core SDK'
 
 - task: MSBuild@1
-   inputs:
-     solution: 'Database.sqlproj'
-     msbuildArguments: '/t:Build /p:Configuration=Release /p:DacpacPath="$(Build.ArtifactStagingDirectory)\Database.dacpac"'
-     platform: 'Any CPU'
-     configuration: 'Release'
-   displayName: 'Build .dacpac from SQL Project'
+  inputs:
+    solution: 'Database.sqlproj'
+    msbuildArguments: '/t:Build /p:Configuration=Release /p:DacpacPath="$(Build.ArtifactStagingDirectory)\Database.dacpac"'
+    platform: 'Any CPU'
+    configuration: 'Release'
+  displayName: 'Build .dacpac from SQL Project'
 
 - task: PublishBuildArtifacts@1
   inputs:
-    pathToPublish: 'module_3_output.txt'
+    pathToPublish: 'module_4_output.txt'
     artifactName: 'script-output'
   displayName: 'Publish data_script.py artifact'
 
 - task: PublishBuildArtifacts@1
-   inputs:
-     pathToPublish: '$(Build.ArtifactStagingDirectory)\Database.dacpac'
-     artifactName: 'sql-dacpac'
-   displayName: 'Publish .dacpac artifact'
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)\Database.dacpac'
+    artifactName: 'sql-dacpac'
+  displayName: 'Publish .dacpac artifact'
 
 # - script: |
 #     mkdir $(Build.ArtifactStagingDirectory)\artifact
-#     copy module_3_output.txt $(Build.ArtifactStagingDirectory)\artifact\
+#     copy module_4_output.txt $(Build.ArtifactStagingDirectory)\artifact\
 #     echo %BUILD_BUILDID% > $(Build.ArtifactStagingDirectory)\artifact\version.txt
 #     dir $(Build.ArtifactStagingDirectory)\artifact\
 #   displayName: 'Stage Files for Publishing'
