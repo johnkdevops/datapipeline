@@ -5,12 +5,16 @@ trigger:
   paths:
     include:
       - scripts/*
+      - *.sql  # Added to capture changes to SQL files
+      - *.sqlproj  # Added to capture changes to project file
 
 pool:
   vmImage: 'windows-latest'
 
 variables:
   version: '1.0'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
 
 steps:
 - task: UsePythonVersion@0
@@ -32,17 +36,17 @@ steps:
 - task: NuGetCommand@2
   inputs:
     command: 'restore'
-    restoreSolution: '**/*.sln'
+    restoreSolution: '**/*.sqlproj'
     feedsToUse: 'select'
   displayName: 'NuGet Restore'
 
 - task: VSBuild@1
   inputs:
     solution: 'Database.sqlproj'
-    msbuildArgs: '/p:Configuration=Release /p:OutDir="$(Build.ArtifactStagingDirectory)"'
-    platform: 'Any CPU'
-    configuration: 'Release'
-  displayName: 'Build .dacpac from SQL Project'
+    msbuildArgs: '/p:Configuration=$(buildConfiguration) /p:OutDir="$(Build.ArtifactStagingDirectory)"'
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+  displayName: 'Build SQL Project'
 
 - task: PublishBuildArtifacts@1
   inputs:
@@ -56,20 +60,16 @@ steps:
     artifactName: 'sql-dacpac'
   displayName: 'Publish .dacpac artifact'
 
-# - script: |
-#     mkdir $(Build.ArtifactStagingDirectory)\artifact
-#     copy module_4_output.txt $(Build.ArtifactStagingDirectory)\artifact\
-#     echo %BUILD_BUILDID% > $(Build.ArtifactStagingDirectory)\artifact\version.txt
-#     dir $(Build.ArtifactStagingDirectory)\artifact\
-#   displayName: 'Stage Files for Publishing'
-
-# - task: UniversalPackages@0
-#   displayName: 'Publish to Azure Artifacts Feed'
+# Optional: Add a step to deploy the DACPAC to a database
+# - task: SqlDacpacDeploymentOnMachineGroup@0
 #   inputs:
-#     command: 'publish'
-#     publishDirectory: '$(Build.ArtifactStagingDirectory)/artifact'  # Directory with output.txt and version.txt
-#     vstsFeedPublish: '$(System.TeamProject)/data-pipeline-feed'     # Project-scoped feed: <project>/<feed>
-#     vstsFeedPackagePublish: 'data-script-output'                    # Package name (lowercase)
-#     versionOption: 'custom'                                         # Custom version
-#     versionPublish: '1.0.$(Build.BuildId)'                          # Matches your current versioning
-#     packagePublishDescription: 'Data script output artifact'        # Matches your description
+#     taskType: 'dacpac'
+#     dacpacFile: '$(Build.ArtifactStagingDirectory)\Database.dacpac'
+#     sqlFile: ''
+#     inlineSql: ''
+#     serverName: 'your-sqlserver.database.windows.net'
+#     databaseName: 'datawarehouse'
+#     sqlUsername: '$(SqlUsername)'
+#     sqlPassword: '$(SqlPassword)'
+#     additionalArguments: '/p:BlockOnPossibleDataLoss=False'
+#   displayName: 'Deploy DACPAC to SQL Database'
