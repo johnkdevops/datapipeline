@@ -24,6 +24,7 @@ steps:
 
 - script: |
     python ./scripts/data_script.py > module_4_output.txt
+    if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
   displayName: 'Run data_script.py'
 
 - task: UseDotNet@2
@@ -62,20 +63,21 @@ steps:
 
 - script: |
     mkdir $(Build.ArtifactStagingDirectory)\artifact
-    copy module_3_output.txt Database.dacpac $(Build.ArtifactStagingDirectory)\artifact\
+    copy module_4_output.txt $(Build.ArtifactStagingDirectory)\Database.dacpac $(Build.ArtifactStagingDirectory)\artifact\
+    if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
     echo %BUILD_BUILDID% > $(Build.ArtifactStagingDirectory)\artifact\version.txt
     dir $(Build.ArtifactStagingDirectory)\artifact\
   displayName: 'Stage Files for Publishing'
 
 - task: UniversalPackages@0
-       inputs:
-         command: 'publish'
-         publishDirectory: '$(Build.ArtifactStagingDirectory)\Database.dacpac'
-         vstsFeedPublish: '$(System.TeamProject)/pipeline-feed'
-         vstsFeedPackagePublish: 'sql-dacpac-package'
-         versionOption: 'custom'
-         versionPublish: '1.0.$(Build.BuildId)'
-       displayName: 'Publish .dacpac to Feed'
+  inputs:
+    command: 'publish'
+    publishDirectory: '$(Build.ArtifactStagingDirectory)\artifact'
+    vstsFeedPublish: '$(System.TeamProject)/pipeline-feed'
+    vstsFeedPackagePublish: 'sql-dacpac-package'
+    versionOption: 'custom'
+    versionPublish: '1.0.$(Build.BuildId)'
+  displayName: 'Publish .dacpac to Feed'
 
 # Optional: Add a step to deploy the DACPAC to a database
 # - task: SqlDacpacDeploymentOnMachineGroup@0
