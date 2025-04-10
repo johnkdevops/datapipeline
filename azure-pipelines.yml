@@ -60,6 +60,16 @@ steps:
     artifactName: 'sql-dacpac'
   displayName: 'Publish .dacpac artifact'
 
+- task: UniversalPackages@0
+       inputs:
+         command: 'publish'
+         publishDirectory: '$(Build.ArtifactStagingDirectory)\Database.dacpac'
+         vstsFeedPublish: '$(System.TeamProject)/pipeline-feed'
+         vstsFeedPackagePublish: 'sql-dacpac-package'
+         versionOption: 'custom'
+         versionPublish: '1.0.$(Build.BuildId)'
+       displayName: 'Publish .dacpac to Feed'
+
 # Optional: Add a step to deploy the DACPAC to a database
 # - task: SqlDacpacDeploymentOnMachineGroup@0
 #   inputs:
