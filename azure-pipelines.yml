@@ -60,6 +60,13 @@ steps:
     artifactName: 'sql-dacpac'
   displayName: 'Publish .dacpac artifact'
 
+- script: |
+    mkdir $(Build.ArtifactStagingDirectory)\artifact
+    copy module_3_output.txt Database.dacpac $(Build.ArtifactStagingDirectory)\artifact\
+    echo %BUILD_BUILDID% > $(Build.ArtifactStagingDirectory)\artifact\version.txt
+    dir $(Build.ArtifactStagingDirectory)\artifact\
+  displayName: 'Stage Files for Publishing'
+
 - task: UniversalPackages@0
        inputs:
          command: 'publish'
