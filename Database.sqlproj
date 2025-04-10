@@ -49,17 +49,17 @@
   </PropertyGroup>
     <ItemGroup>
     <!-- Tables -->
-    <Build Include="products.sql" />
-    <Build Include="staff.sql" />
-    <Build Include="orders.sql" />
+    <Build Include="scripts/products.sql" />
+    <Build Include="scripts/staff.sql" />
+    <Build Include="scripts/orders.sql" />
     
     <!-- Views -->
-    <Build Include="OrderDetailsView.sql" />
-    <Build Include="StaffSalesView.sql" />
-    <Build Include="ProductSalesView.sql" />
+    <Build Include="scripts/OrderDetailsView.sql" />
+    <Build Include="scripts/StaffSalesView.sql" />
+    <Build Include="scripts/ProductSalesView.sql" />
   </ItemGroup>
   <ItemGroup>
-    <PostDeploy Include="Script.PostDeployment.sql" />
+    <PostDeploy Include="scripts/PostDeployment.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
 </Project>
