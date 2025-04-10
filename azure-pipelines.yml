@@ -62,11 +62,12 @@ steps:
   displayName: 'Publish .dacpac artifact'
 
 - script: |
-    mkdir $(Build.ArtifactStagingDirectory)\artifact
-    copy module_4_output.txt $(Build.ArtifactStagingDirectory)\Database.dacpac $(Build.ArtifactStagingDirectory)\artifact\
+    mkdir "$(Build.ArtifactStagingDirectory)\artifact"
+    copy "module_4_output.txt" "$(Build.ArtifactStagingDirectory)\artifact\"
+    copy "$(Build.ArtifactStagingDirectory)\Database.dacpac" "$(Build.ArtifactStagingDirectory)\artifact\"
     if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
-    echo %BUILD_BUILDID% > $(Build.ArtifactStagingDirectory)\artifact\version.txt
-    dir $(Build.ArtifactStagingDirectory)\artifact\
+    echo %BUILD_BUILDID% > "$(Build.ArtifactStagingDirectory)\artifact\version.txt"
+    dir "$(Build.ArtifactStagingDirectory)\artifact\"
   displayName: 'Stage Files for Publishing'
 
 - task: UniversalPackages@0
