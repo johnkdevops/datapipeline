@@ -1,7 +1,7 @@
 trigger:
   branches:
     include:
-      - feature  # Replace with your actual feature branch name
+      - main
   paths:
     include:
       - scripts/*
