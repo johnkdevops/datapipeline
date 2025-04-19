@@ -1,95 +1,40 @@
 trigger:
   branches:
     include:
-      - main
+      - feature/big-data
   paths:
     include:
-      - scripts/*
-      - '**/*.sql'  # Fixed pattern for SQL files
-      - '**/*.sqlproj'  # Fixed pattern for SQL project files
-
+      - notebooks/*
+      - synapse/*
+      
 pool:
-  vmImage: 'windows-latest'
-
+  vmImage: 'ubuntu-latest'
+	    
 variables:
-  version: '1.0'
-  buildPlatform: 'Any CPU'
-  buildConfiguration: 'Release'
+- group: 'big-data-integration-secrets'
 
 steps:
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '3.x'
   displayName: 'Setup Python'
-
+  
 - script: |
-    python ./scripts/data_script.py > module_4_output.txt
-    if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
-  displayName: 'Run data_script.py'
-
-- task: UseDotNet@2
-  inputs:
-    packageType: 'sdk'
-    version: '3.1.x'
-  displayName: 'Install .NET Core SDK'
-
-# Install SQL Server Data Tools (SSDT)
-- task: NuGetCommand@2
-  inputs:
-    command: 'restore'
-    restoreSolution: '**/*.sqlproj'
-    feedsToUse: 'select'
-  displayName: 'NuGet Restore'
-
-- task: VSBuild@1
-  inputs:
-    solution: 'Database.sqlproj'
-    msbuildArgs: '/p:Configuration=$(buildConfiguration) /p:OutDir="$(Build.ArtifactStagingDirectory)"'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
-  displayName: 'Build SQL Project'
-
-- task: PublishBuildArtifacts@1
-  inputs:
-    pathToPublish: 'module_4_output.txt'
-    artifactName: 'script-output'
-  displayName: 'Publish data_script.py artifact'
-
-- task: PublishBuildArtifacts@1
-  inputs:
-    pathToPublish: '$(Build.ArtifactStagingDirectory)\Database.dacpac'
-    artifactName: 'sql-dacpac'
-  displayName: 'Publish .dacpac artifact'
-
+    pip install pyspark
+  displayName: "Install PySpark"
+  
 - script: |
-    mkdir "$(Build.ArtifactStagingDirectory)\artifact"
-    copy "module_4_output.txt" "$(Build.ArtifactStagingDirectory)\artifact\"
-    copy "$(Build.ArtifactStagingDirectory)\Database.dacpac" "$(Build.ArtifactStagingDirectory)\artifact\"
-    if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
-    echo %BUILD_BUILDID% > "$(Build.ArtifactStagingDirectory)\artifact\version.txt"
-    dir "$(Build.ArtifactStagingDirectory)\artifact\"
-  displayName: 'Stage Files for Publishing'
-
-- task: UniversalPackages@0
+    python notebooks/process_data.py
+  env:
+    DATBRICKS_HOST: $(databricksWorkspaceUrl)
+    DATABRICKS_TOKEN: $(databricksToken)
+  displayName: 'Deploy Databricks Notebook'
+  
+- task: AzurePowerShell@5
   inputs:
-    command: 'publish'
-    publishDirectory: '$(Build.ArtifactStagingDirectory)\artifact'
-    vstsFeedPublish: '$(System.TeamProject)/pipeline-feed'
-    vstsFeedPackagePublish: 'sql-dacpac-package'
-    versionOption: 'custom'
-    versionPublish: '1.0.$(Build.BuildId)'
-  displayName: 'Publish .dacpac to Feed'
-
-# Optional: Add a step to deploy the DACPAC to a database
-# - task: SqlDacpacDeploymentOnMachineGroup@0
-#   inputs:
-#     taskType: 'dacpac'
-#     dacpacFile: '$(Build.ArtifactStagingDirectory)\Database.dacpac'
-#     sqlFile: ''
-#     inlineSql: ''
-#     serverName: 'your-sqlserver.database.windows.net'
-#     databaseName: 'datawarehouse'
-#     sqlUsername: '$(SqlUsername)'
-#     sqlPassword: '$(SqlPassword)'
-#     additionalArguments: '/p:BlockOnPossibleDataLoss=False'
-#   displayName: 'Deploy DACPAC to SQL Database'
+    azureSubscription: 'azureSubscription'
+    azurePowerShellVersion: 'LatestVersion'
+    scriptType: 'FilePath'
+    scriptPath: 'synapse/analyze_sales.sql'
+    scriptArguments: '-WorkspaceName $(synapseWorkspaceName)'
+  displayName: 'Run Synapse SQL Script'
