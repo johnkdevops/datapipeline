@@ -6,10 +6,10 @@ trigger:
     include:
       - notebooks/*
       - synapse/*
-      
+
 pool:
   vmImage: 'ubuntu-latest'
-	    
+
 variables:
 - group: 'big-data-integration-secrets'
 
@@ -18,23 +18,23 @@ steps:
   inputs:
     versionSpec: '3.x'
   displayName: 'Setup Python'
-  
+
 - script: |
     pip install pyspark
-  displayName: "Install PySpark"
-  
+  displayName: 'Install PySpark'
+
 - script: |
     python notebooks/process_data.py
   env:
-    DATBRICKS_HOST: $(databricksWorkspaceUrl)
+    DATABRICKS_HOST: $(databricksWorkspaceUrl)
     DATABRICKS_TOKEN: $(databricksToken)
   displayName: 'Deploy Databricks Notebook'
-  
+
 - task: AzurePowerShell@5
   inputs:
-    azureSubscription: 'azureSubscription'
+    azureSubscription: 'azureSubscriptionName'  # <-- Fix: use your actual service connection name
+    ScriptType: 'InlineScript'
+    Inline: |
+      Invoke-Sqlcmd -ServerInstance "$(synapseWorkspaceName).sql.azuresynapse.net" -Database master -InputFile "synapse/analyze_sales.sql"
     azurePowerShellVersion: 'LatestVersion'
-    scriptType: 'FilePath'
-    scriptPath: 'synapse/analyze_sales.sql'
-    scriptArguments: '-WorkspaceName $(synapseWorkspaceName)'
   displayName: 'Run Synapse SQL Script'
